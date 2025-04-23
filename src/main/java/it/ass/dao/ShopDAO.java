@@ -13,9 +13,7 @@ public class ShopDAO {
         List<Shop> shopList = new ArrayList<>();
         String sql = "SELECT shop_id, shop_name, city, address FROM shop";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Shop shop = new Shop();
@@ -31,5 +29,25 @@ public class ShopDAO {
         }
 
         return shopList;
+    }
+
+    public Shop getShopById(int shopId) {
+        Shop shop = null;
+        String sql = "SELECT shop_id, shop_name, city, address FROM shop WHERE shop_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    shop = new Shop();
+                    shop.setShopId(rs.getInt("shop_id"));
+                    shop.setShopName(rs.getString("shop_name"));
+                    shop.setCity(rs.getString("city"));
+                    shop.setAddress(rs.getString("address"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return shop;
     }
 }

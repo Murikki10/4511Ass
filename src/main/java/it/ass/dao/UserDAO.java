@@ -65,6 +65,7 @@ public class UserDAO {
                 u.setUsername(rs.getString("username"));
                 u.setRole(rs.getString("role"));
                 u.setCity(rs.getString("city"));
+                u.setShopId(rs.getInt("shop_id"));  // <-- 加入呢行
                 list.add(u);
             }
         } catch (Exception e) {
@@ -186,4 +187,20 @@ public class UserDAO {
         }
         return list;
     }
+
+    public boolean updateUserWithShop(User user) {
+        String sql = "UPDATE users SET username=?, role=?, city=?, shop_id=? WHERE user_id=?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getUsername());
+            ps.setString(2, user.getRole());
+            ps.setString(3, user.getCity());
+            ps.setInt(4, user.getShopId());
+            ps.setInt(5, user.getUserId());
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }
