@@ -1,14 +1,15 @@
 package it.ass.model;
 
 public class User {
+
     private int userId;
     private String username;
     private String password;
     private String role;
     private String city;
+    private int shopId;
 
     // Getters & Setters
-
     public int getUserId() {
         return userId;
     }
@@ -47,5 +48,13 @@ public class User {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public int getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(int shopId) {
+        this.shopId = shopId;
     }
 }

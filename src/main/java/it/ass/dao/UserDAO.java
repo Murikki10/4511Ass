@@ -119,4 +119,50 @@ public class UserDAO {
         }
         return false;
     }
+
+    // 取得同城市其他店鋪（不包含自己店鋪）
+    public List<User> getUserByShopId(String city, int excludeShopId) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE city=? AND shop_id<>? AND role='shop'";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, city);
+            ps.setInt(2, excludeShopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = new User();
+                    u.setUserId(rs.getInt("user_id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setShopId(rs.getInt("shop_id"));
+                    u.setCity(rs.getString("city"));
+                    u.setRole(rs.getString("role"));
+                    list.add(u);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public User getUserByShopId(int shopId) {
+        User user = null;
+        String sql = "SELECT * FROM users WHERE shop_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUsername(rs.getString("username"));
+                    user.setShopId(rs.getInt("shop_id"));
+                    user.setCity(rs.getString("city"));
+                    user.setRole(rs.getString("role"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+    
 }
