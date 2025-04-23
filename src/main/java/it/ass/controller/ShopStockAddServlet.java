@@ -14,6 +14,7 @@ import java.util.List;
 
 @WebServlet("/shop/stockadd")
 public class ShopStockAddServlet extends HttpServlet {
+
     private FruitDAO dao = new FruitDAO();
 
     @Override
@@ -25,10 +26,7 @@ public class ShopStockAddServlet extends HttpServlet {
         }
         List<Fruit> fruitList = dao.getAllFruits();
         req.setAttribute("fruitList", fruitList);
-
-        // 傳給JSP用戶所在城市（locationName）
-        req.setAttribute("locationName", user.getCity());
-
+        req.setAttribute("locationName", user.getCity()); // 顯示城市名稱（readonly）
         req.getRequestDispatcher("/shop_stock_add.jsp").forward(req, resp);
     }
 
@@ -42,18 +40,19 @@ public class ShopStockAddServlet extends HttpServlet {
 
         try {
             int fruitId = Integer.parseInt(req.getParameter("fruitId"));
-            String locationName = req.getParameter("locationName");
             int quantity = Integer.parseInt(req.getParameter("quantity"));
+            int shopId = user.getShopId(); // 用當前登入用戶店鋪ID
+            String locationName = user.getCity(); // 用當前登入用戶城市作為location_name
 
-            boolean success = dao.addStock(fruitId, locationName, quantity);
+            boolean success = dao.addStock(fruitId, shopId, quantity, locationName);
             if (success) {
                 resp.sendRedirect(req.getContextPath() + "/shop/stocklist");
             } else {
-                req.setAttribute("error", "新增庫存失敗");
+                req.setAttribute("error", "Failed to add stock");
                 doGet(req, resp);
             }
         } catch (NumberFormatException e) {
-            req.setAttribute("error", "請輸入有效數字");
+            req.setAttribute("error", "Invalid number format");
             doGet(req, resp);
         }
     }

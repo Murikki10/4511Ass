@@ -132,35 +132,95 @@ public class FruitDAO {
     }
 
     // 更新庫存數量
-    public boolean updateStockQuantity(int stockId, int newQuantity) {
-        if (newQuantity < 0) {
-            return false;
-        }
-        String sql = "UPDATE fruit_stock SET quantity = ? WHERE stock_id = ?";
+    public boolean updateStock(int stockId, int shopId, int fruitId, int quantity) {
+        String sql = "UPDATE fruit_stock SET quantity = ? WHERE stock_id = ? AND shop_id = ? AND fruit_id = ?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, newQuantity);
+            ps.setInt(1, quantity);
             ps.setInt(2, stockId);
+            ps.setInt(3, shopId);
+            ps.setInt(4, fruitId);
             return ps.executeUpdate() == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
+
     // 新增庫存
-    public boolean addStock(int fruitId, String locationName, int quantity) {
-        if (quantity < 0) return false;
-        String sql = "INSERT INTO fruit_stock (fruit_id, location_type, location_name, quantity) VALUES (?, 'shop', ?, ?)";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, fruitId);
-            ps.setString(2, locationName);
-            ps.setInt(3, quantity);
-            int rows = ps.executeUpdate();
-            return rows > 0;
+    public boolean addStock(int fruitId, int shopId, int quantity, String locationName) {
+        String locationType = "shop";
+        String sqlCheck = "SELECT * FROM fruit_stock WHERE shop_id = ? AND fruit_id = ?";
+        String sqlInsert = "INSERT INTO fruit_stock (fruit_id, location_type, location_name, quantity, shop_id) VALUES (?, ?, ?, ?, ?)";
+        String sqlUpdate = "UPDATE fruit_stock SET quantity = quantity + ? WHERE shop_id = ? AND fruit_id = ?";
+
+        try (Connection conn = DBUtil.getConnection()) {
+            try (PreparedStatement psCheck = conn.prepareStatement(sqlCheck)) {
+                psCheck.setInt(1, shopId);
+                psCheck.setInt(2, fruitId);
+                try (ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next()) {
+                        try (PreparedStatement psUpdate = conn.prepareStatement(sqlUpdate)) {
+                            psUpdate.setInt(1, quantity);
+                            psUpdate.setInt(2, shopId);
+                            psUpdate.setInt(3, fruitId);
+                            return psUpdate.executeUpdate() == 1;
+                        }
+                    } else {
+                        try (PreparedStatement psInsert = conn.prepareStatement(sqlInsert)) {
+                            psInsert.setInt(1, fruitId);
+                            psInsert.setString(2, locationType);
+                            psInsert.setString(3, locationName);
+                            psInsert.setInt(4, quantity);
+                            psInsert.setInt(5, shopId);
+                            return psInsert.executeUpdate() == 1;
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
-    
+
+    // 查詢指定店鋪與水果的庫存數量（修正欄位名稱為 quantity）
+    public int getStockByShopIdAndFruitId(int shopId, int fruitId) {
+        String sql = "SELECT quantity FROM fruit_stock WHERE shop_id = ? AND fruit_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            ps.setInt(2, fruitId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("quantity");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;  // 無紀錄視為庫存 0
+    }
+
+    // 查詢指定店鋪與水果的庫存明細
+    public List<FruitStock> getFruitStockDetailByShopIdAndFruitId(int shopId, int fruitId) {
+        List<FruitStock> list = new ArrayList<>();
+        String sql = "SELECT stock_id, shop_id, fruit_id, quantity, location_name FROM fruit_stock WHERE shop_id = ? AND fruit_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            ps.setInt(2, fruitId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    FruitStock fs = new FruitStock();
+                    fs.setStockId(rs.getInt("stock_id"));
+                    fs.setShopId(rs.getInt("shop_id"));
+                    fs.setFruitId(rs.getInt("fruit_id"));
+                    fs.setQuantity(rs.getInt("quantity"));
+                    fs.setLocationName(rs.getString("location_name"));
+                    list.add(fs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

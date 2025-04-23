@@ -20,6 +20,8 @@ public class UserDAO {
                 u.setUsername(rs.getString("username"));
                 u.setRole(rs.getString("role"));
                 u.setCity(rs.getString("city"));
+                // 新增設定 shopId
+                u.setShopId(rs.getInt("shop_id"));
                 return u;
             }
         } catch (Exception e) {
@@ -48,7 +50,7 @@ public class UserDAO {
 
         } catch (Exception e) {
             System.out.println("註冊錯誤：" + e.getMessage());
-            e.printStackTrace(); // 最重要！印出完整 SQL 錯誤
+            e.printStackTrace();
         }
         return false;
     }
@@ -65,7 +67,7 @@ public class UserDAO {
                 u.setUsername(rs.getString("username"));
                 u.setRole(rs.getString("role"));
                 u.setCity(rs.getString("city"));
-                u.setShopId(rs.getInt("shop_id"));  // <-- 加入呢行
+                u.setShopId(rs.getInt("shop_id"));  // 保持這行
                 list.add(u);
             }
         } catch (Exception e) {
@@ -74,7 +76,7 @@ public class UserDAO {
         return list;
     }
 
-// 根據ID取得單一用戶
+    // 根據ID取得單一用戶
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE user_id=?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -86,6 +88,7 @@ public class UserDAO {
                 u.setUsername(rs.getString("username"));
                 u.setRole(rs.getString("role"));
                 u.setCity(rs.getString("city"));
+                u.setShopId(rs.getInt("shop_id"));  // 加入這行，保持一致
                 return u;
             }
         } catch (Exception e) {
@@ -94,7 +97,7 @@ public class UserDAO {
         return null;
     }
 
-// 修改用戶
+    // 修改用戶
     public boolean updateUser(User user) {
         String sql = "UPDATE users SET username=?, role=?, city=? WHERE user_id=?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -109,7 +112,7 @@ public class UserDAO {
         return false;
     }
 
-// 刪除用戶
+    // 刪除用戶
     public boolean deleteUser(int id) {
         String sql = "DELETE FROM users WHERE user_id=?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -124,7 +127,7 @@ public class UserDAO {
     // 取得同城市其他店鋪（不包含自己店鋪）
     public List<User> getUserByShopId(String city, int excludeShopId) {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE city=? AND shop_id<>? AND role='shop'";
+        String sql = "SELECT * FROM users WHERE city = ? AND shop_id <> ? AND role='shop'";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, city);
             ps.setInt(2, excludeShopId);
@@ -202,5 +205,4 @@ public class UserDAO {
         }
         return false;
     }
-
 }

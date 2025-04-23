@@ -2,9 +2,10 @@ package it.ass.controller;
 
 import it.ass.dao.BorrowRequestDAO;
 import it.ass.dao.FruitDAO;
-import it.ass.dao.UserDAO;
+import it.ass.dao.ShopDAO;
 import it.ass.model.BorrowRequest;
 import it.ass.model.Fruit;
+import it.ass.model.Shop;
 import it.ass.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -12,14 +13,16 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/borrow/*")
 public class BorrowServlet extends HttpServlet {
 
     private final BorrowRequestDAO borrowRequestDAO = new BorrowRequestDAO();
     private final FruitDAO fruitDAO = new FruitDAO();
-    private final UserDAO userDAO = new UserDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
 
     private boolean isShopUser(User user) {
         return user != null && "shop".equalsIgnoreCase(user.getRole());
@@ -78,15 +81,36 @@ public class BorrowServlet extends HttpServlet {
 
     private void showBorrowRequestList(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
         List<BorrowRequest> borrowList = borrowRequestDAO.getBorrowRequestsByToShopId(user.getShopId());
+
+        Map<Integer, Shop> fromShopMap = new HashMap<>();
+        Map<Integer, Fruit> fruitMap = new HashMap<>();
+
+        for (BorrowRequest br : borrowList) {
+            int fromShopId = br.getFromShopId();
+            if (!fromShopMap.containsKey(fromShopId)) {
+                Shop shop = shopDAO.getShopById(fromShopId);
+                fromShopMap.put(fromShopId, shop);
+            }
+
+            int fruitId = br.getFruitId();
+            if (!fruitMap.containsKey(fruitId)) {
+                Fruit fruit = fruitDAO.getFruitById(fruitId);
+                fruitMap.put(fruitId, fruit);
+            }
+        }
+
         req.setAttribute("borrowList", borrowList);
+        req.setAttribute("fromShopMap", fromShopMap);
+        req.setAttribute("fruitMap", fruitMap);
         req.getRequestDispatcher("/borrow_list.jsp").forward(req, resp);
     }
 
     private void showBorrowRequestForm(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
         List<Fruit> fruits = fruitDAO.getAllFruits();
-        List<User> shopsInOtherCities = userDAO.getUsersExceptCity(user.getCity(), user.getShopId());
+        // 取得同城市且排除自己店鋪的店鋪清單
+        List<Shop> shopsInSameCity = shopDAO.getShopsInCityExcept(user.getCity(), user.getShopId());
         req.setAttribute("fruitList", fruits);
-        req.setAttribute("shopsInOtherCities", shopsInOtherCities);
+        req.setAttribute("shopsInSameCity", shopsInSameCity);
         req.getRequestDispatcher("/borrow_add.jsp").forward(req, resp);
     }
 
@@ -102,26 +126,31 @@ public class BorrowServlet extends HttpServlet {
             if (quantity <= 0) {
                 errorMsg = "數量必須大於零";
             } else {
-                List<User> shopsInOtherCities = userDAO.getUsersExceptCity(user.getCity(), user.getShopId());
-                boolean validFromShop = shopsInOtherCities.stream().anyMatch(s -> s.getShopId() == fromShopId);
+                List<Shop> shopsInSameCity = shopDAO.getShopsInCityExcept(user.getCity(), user.getShopId());
+                boolean validFromShop = shopsInSameCity.stream().anyMatch(s -> s.getShopId() == fromShopId);
 
                 if (!validFromShop) {
-                    errorMsg = "借出店鋪必須是不同城市的其他店鋪";
+                    errorMsg = "借出店鋪必須是同一城市且不同店鋪";
                 } else {
-                    BorrowRequest borrowRequest = new BorrowRequest();
-                    borrowRequest.setFromShopId(fromShopId);
-                    borrowRequest.setToShopId(user.getShopId());
-                    borrowRequest.setFruitId(fruitId);
-                    borrowRequest.setQuantity(quantity);
-                    borrowRequest.setStatus("pending");
-                    borrowRequest.setRequestDate(Date.valueOf(LocalDate.now()));
-
-                    boolean success = borrowRequestDAO.addBorrowRequest(borrowRequest);
-                    if (success) {
-                        resp.sendRedirect(req.getContextPath() + "/borrow/list");
-                        return;
+                    int availableStock = fruitDAO.getStockByShopIdAndFruitId(fromShopId, fruitId);
+                    if (quantity > availableStock) {
+                        errorMsg = "借用數量超過庫存，庫存剩餘：" + availableStock;
                     } else {
-                        errorMsg = "新增借水果申請失敗，請稍後再試";
+                        BorrowRequest borrowRequest = new BorrowRequest();
+                        borrowRequest.setFromShopId(fromShopId);
+                        borrowRequest.setToShopId(user.getShopId());
+                        borrowRequest.setFruitId(fruitId);
+                        borrowRequest.setQuantity(quantity);
+                        borrowRequest.setStatus("pending");
+                        borrowRequest.setRequestDate(Date.valueOf(LocalDate.now()));
+
+                        boolean success = borrowRequestDAO.addBorrowRequest(borrowRequest);
+                        if (success) {
+                            resp.sendRedirect(req.getContextPath() + "/borrow/list");
+                            return;
+                        } else {
+                            errorMsg = "新增借水果申請失敗，請稍後再試";
+                        }
                     }
                 }
             }
