@@ -47,8 +47,8 @@ public class UserDAO {
             return inserted;
 
         } catch (Exception e) {
-            System.out.println("reg failed：" + e.getMessage());
-            e.printStackTrace(); // 印出完整錯誤
+            System.out.println("註冊錯誤：" + e.getMessage());
+            e.printStackTrace(); // 最重要！印出完整 SQL 錯誤
         }
         return false;
     }
@@ -164,5 +164,26 @@ public class UserDAO {
         }
         return user;
     }
-    
+
+    public List<User> getUsersExceptCity(String city, int excludeShopId) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE city <> ? AND shop_id <> ? AND role = 'shop'";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, city);
+            ps.setInt(2, excludeShopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = new User();
+                    u.setShopId(rs.getInt("shop_id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setCity(rs.getString("city"));
+                    u.setRole(rs.getString("role"));
+                    list.add(u);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

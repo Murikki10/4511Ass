@@ -8,6 +8,7 @@ it\ass\dao\UserDAO.class
 it\ass\controller\FruitServlet.class
 it\ass\controller\ReserveServlet.class
 it\ass\model\FruitStock.class
+it\ass\model\Shop.class
 it\ass\filter\AuthFilter.class
 it\ass\resources\JakartaEE10Resource.class
 it\ass\util\DBUtil.class
@@ -17,6 +18,7 @@ it\ass\controller\ShopStockUpdateServlet.class
 it\ass\controller\RegisterServlet.class
 it\ass\controller\UserEditServlet.class
 it\ass\controller\BorrowServlet.class
+it\ass\dao\ShopDAO.class
 it\ass\dao\BorrowRequestDAO.class
 it\ass\controller\UserDeleteServlet.class
 it\ass\DBTest.class

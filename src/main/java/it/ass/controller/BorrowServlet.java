@@ -16,11 +16,11 @@ import java.util.List;
 
 @WebServlet("/borrow/*")
 public class BorrowServlet extends HttpServlet {
+
     private final BorrowRequestDAO borrowRequestDAO = new BorrowRequestDAO();
     private final FruitDAO fruitDAO = new FruitDAO();
     private final UserDAO userDAO = new UserDAO();
 
-    // 判斷用戶身份是否為店鋪員工
     private boolean isShopUser(User user) {
         return user != null && "shop".equalsIgnoreCase(user.getRole());
     }
@@ -28,10 +28,12 @@ public class BorrowServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         User currentUser = getLoggedInUser(req, resp);
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            return;
+        }
 
         if (!isShopUser(currentUser)) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Only store staff can use the borrow fruit function");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "只有店鋪員工可以使用借水果功能");
             return;
         }
 
@@ -48,10 +50,12 @@ public class BorrowServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         User currentUser = getLoggedInUser(req, resp);
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            return;
+        }
 
         if (!isShopUser(currentUser)) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Only store staff can use the borrow fruit function");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "只有店鋪員工可以使用借水果功能");
             return;
         }
 
@@ -80,9 +84,9 @@ public class BorrowServlet extends HttpServlet {
 
     private void showBorrowRequestForm(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
         List<Fruit> fruits = fruitDAO.getAllFruits();
-        List<User> shopsInCity = userDAO.getUserByShopId(user.getCity(), user.getShopId()); // 取得同城市其他店鋪
+        List<User> shopsInOtherCities = userDAO.getUsersExceptCity(user.getCity(), user.getShopId());
         req.setAttribute("fruitList", fruits);
-        req.setAttribute("shopsInCity", shopsInCity);
+        req.setAttribute("shopsInOtherCities", shopsInOtherCities);
         req.getRequestDispatcher("/borrow_add.jsp").forward(req, resp);
     }
 
@@ -96,14 +100,13 @@ public class BorrowServlet extends HttpServlet {
             int quantity = Integer.parseInt(req.getParameter("quantity"));
 
             if (quantity <= 0) {
-                errorMsg = "Quantity must be greater than zero";
+                errorMsg = "數量必須大於零";
             } else {
-                // 驗證借出店鋪必須為同城市且非自己店鋪
-                List<User> shopsInCity = userDAO.getUserByShopId(user.getCity(), user.getShopId());
-                boolean validFromShop = shopsInCity.stream().anyMatch(s -> s.getShopId() == fromShopId);
+                List<User> shopsInOtherCities = userDAO.getUsersExceptCity(user.getCity(), user.getShopId());
+                boolean validFromShop = shopsInOtherCities.stream().anyMatch(s -> s.getShopId() == fromShopId);
 
                 if (!validFromShop) {
-                    errorMsg = "The mall being loaned out must be another mall in the same city";
+                    errorMsg = "借出店鋪必須是不同城市的其他店鋪";
                 } else {
                     BorrowRequest borrowRequest = new BorrowRequest();
                     borrowRequest.setFromShopId(fromShopId);
@@ -118,12 +121,12 @@ public class BorrowServlet extends HttpServlet {
                         resp.sendRedirect(req.getContextPath() + "/borrow/list");
                         return;
                     } else {
-                        errorMsg = "The application for borrowing fruit failed. Please try again later.";
+                        errorMsg = "新增借水果申請失敗，請稍後再試";
                     }
                 }
             }
         } catch (NumberFormatException e) {
-            errorMsg = "Please enter a valid number";
+            errorMsg = "請輸入有效的數字";
         }
 
         req.setAttribute("error", errorMsg);

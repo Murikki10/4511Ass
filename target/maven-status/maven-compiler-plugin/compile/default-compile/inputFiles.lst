@@ -1,4 +1,5 @@
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\controller\ReserveServlet.java
+C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\model\Shop.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\dao\UserDAO.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\controller\LoginServlet.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\controller\UserDeleteServlet.java
@@ -18,6 +19,7 @@ C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\model\Fruit.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\util\DBUtil.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\filter\AuthFilter.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\dao\ReservationDAO.java
+C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\dao\ShopDAO.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\model\Reservation.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\model\BorrowRequest.java
 C:\Users\w0514\Documents\Netbeans\4511Ass\src\main\java\it\ass\controller\UserListServlet.java
