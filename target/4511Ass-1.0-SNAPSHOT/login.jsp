@@ -1,0 +1,9 @@
+<!-- login.jsp -->
+<form action="login" method="post">
+  <input type="text" name="username" placeholder="Username"><br/>
+  <input type="password" name="password" placeholder="Password"><br/>
+  <button type="submit">Login</button>
+</form>
+${error}
+<a href="register.jsp">Register</a>
+

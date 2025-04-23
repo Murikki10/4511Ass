@@ -1,0 +1,12 @@
+it\ass\resources\JakartaEE10Resource.class
+it\ass\util\DBUtil.class
+it\ass\controller\LoginServlet.class
+it\ass\model\User.class
+it\ass\JakartaRestConfiguration.class
+it\ass\controller\RegisterServlet.class
+it\ass\controller\UserEditServlet.class
+it\ass\controller\UserListServlet.class
+it\ass\dao\UserDAO.class
+it\ass\controller\UserDeleteServlet.class
+it\ass\DBTest.class
+it\ass\filter\AuthFilter.class
