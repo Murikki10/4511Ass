@@ -168,7 +168,8 @@
                 </thead>
                 <tbody>
                     <%
-                        for (FruitStock fs : stockDetails) {
+                        if (stockDetails != null && !stockDetails.isEmpty()) {
+                            for (FruitStock fs : stockDetails) {
                     %>
                     <tr>
                         <td data-label="Inventory ID"><%= fs.getStockId()%></td>
@@ -180,7 +181,16 @@
                             <input type="number" name="quantity" min="0" required />
                         </td>
                     </tr>
-                    <% }%>
+                    <%
+                        }
+                    } else {
+                    %>
+                    <tr>
+                        <td colspan="4" style="text-align: center;">No stock details found.</td>
+                    </tr>
+                    <%
+                        }
+                    %>
                 </tbody>
             </table>
             <input type="submit" value="Update Inventory" />

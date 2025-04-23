@@ -223,4 +223,100 @@ public class FruitDAO {
         }
         return list;
     }
+
+    // 查詢指定店鋪與水果的庫存明細
+    public List<FruitStock> findStockDetailsByShopIdAndFruitId(int shopId, int fruitId) {
+        List<FruitStock> list = new ArrayList<>();
+        String sql = "SELECT stock_id, shop_id, fruit_id, quantity, location_name FROM fruit_stock WHERE shop_id = ? AND fruit_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            ps.setInt(2, fruitId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    FruitStock fs = new FruitStock();
+                    fs.setStockId(rs.getInt("stock_id"));
+                    fs.setShopId(rs.getInt("shop_id"));
+                    fs.setFruitId(rs.getInt("fruit_id"));
+                    fs.setQuantity(rs.getInt("quantity"));
+                    fs.setLocationName(rs.getString("location_name"));
+                    list.add(fs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 取得自己店鋪指定水果的庫存明細
+    public List<FruitStock> getFruitStockDetailsByShopAndFruit(int shopId, int fruitId) {
+        List<FruitStock> list = new ArrayList<>();
+        String sql = "SELECT stock_id, shop_id, fruit_id, quantity, location_name FROM fruit_stock WHERE shop_id = ? AND fruit_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            ps.setInt(2, fruitId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    FruitStock fs = new FruitStock();
+                    fs.setStockId(rs.getInt("stock_id"));
+                    fs.setShopId(rs.getInt("shop_id"));
+                    fs.setFruitId(rs.getInt("fruit_id"));
+                    fs.setQuantity(rs.getInt("quantity"));
+                    fs.setLocationName(rs.getString("location_name"));
+                    list.add(fs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+// 取得整個地區指定水果的庫存明細（location_type='shop'，location_name為城市）
+    public List<FruitStock> getFruitStockDetailsByCityAndFruit(String cityName, int fruitId) {
+        List<FruitStock> list = new ArrayList<>();
+        String sql = "SELECT stock_id, shop_id, fruit_id, quantity, location_name FROM fruit_stock WHERE fruit_id = ? AND location_name = ? AND location_type = 'shop'";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, fruitId);
+            ps.setString(2, cityName);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    FruitStock fs = new FruitStock();
+                    fs.setStockId(rs.getInt("stock_id"));
+                    fs.setShopId(rs.getInt("shop_id"));
+                    fs.setFruitId(rs.getInt("fruit_id"));
+                    fs.setQuantity(rs.getInt("quantity"));
+                    fs.setLocationName(rs.getString("location_name"));
+                    list.add(fs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    // 取得自己店鋪所有水果庫存彙總
+
+    public List<FruitStockSummary> getFruitStockSummaryByShop(int shopId) {
+        List<FruitStockSummary> list = new ArrayList<>();
+        String sql = "SELECT f.fruit_id, f.name, SUM(fs.quantity) AS total_quantity "
+                + "FROM fruits f JOIN fruit_stock fs ON f.fruit_id = fs.fruit_id "
+                + "WHERE fs.shop_id = ? AND fs.location_type = 'shop' "
+                + "GROUP BY f.fruit_id, f.name";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    FruitStockSummary summary = new FruitStockSummary();
+                    summary.setFruitId(rs.getInt("fruit_id"));
+                    summary.setFruitName(rs.getString("name"));
+                    summary.setTotalQuantity(rs.getInt("total_quantity"));
+                    list.add(summary);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

@@ -9,12 +9,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
 import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/shop/stocklist")
 public class ShopStockListServlet extends HttpServlet {
+
     private FruitDAO dao = new FruitDAO();
 
     @Override
@@ -24,9 +24,16 @@ public class ShopStockListServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login.jsp");
             return;
         }
+
         String city = user.getCity();
-        List<FruitStockSummary> stockList = dao.getFruitStockSummaryByCity(city);
-        req.setAttribute("stockList", stockList);
+        int shopId = user.getShopId();
+
+        List<FruitStockSummary> cityStockList = dao.getFruitStockSummaryByCity(city);
+        List<FruitStockSummary> myShopStockList = dao.getFruitStockSummaryByShop(shopId);
+
+        req.setAttribute("cityStockList", cityStockList);
+        req.setAttribute("myShopStockList", myShopStockList);
+
         req.getRequestDispatcher("/shop_stock_list.jsp").forward(req, resp);
     }
 }
